@@ -1,5 +1,6 @@
 package course;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -107,5 +108,26 @@ public class BlogPostDAO {
         // - email is optional and may come in NULL. Check for that.
         // - best solution uses an update command to the database and a suitable
         //   operator to append the comment on to any existing list of comments
+
+        Document post = findByPermalink(permalink);
+
+        Document comment = new Document();
+
+        comment
+                .append("author", name)
+                .append("body", body);
+
+        if (email != null && !email.equals("")) {
+            comment.append("email", email);
+        }
+
+        try {
+            postsCollection.updateOne(post, new BasicDBObject(
+                    "$push",
+                    new BasicDBObject("comments", comment)
+            ));
+        } catch (MongoWriteException e) {
+            throw e;
+        }
     }
 }
